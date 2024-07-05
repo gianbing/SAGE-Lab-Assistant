@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SLY Assistant
 // @namespace    http://tampermonkey.net/
-// @version      0.6.14
+// @version      0.6.15
 // @description  try to take over the world!
 // @author       SLY w/ Contributions by niofox, SkyLove512, anthonyra, [AEP] Valkynen
 // @match        https://*.based.staratlas.com/
@@ -178,7 +178,7 @@
             cLog(2, `${proxyType} current RPC: ${target._rpcWsEndpoint}`);
 			if (isConnectivityError(error1)) {
 				let success = false;
-				let rpcIdx = 1;
+				let rpcIdx = 0;
 				while (!success && rpcIdx < rpcs.length) {
 					cLog(2, `${proxyType} trying ${rpcs[rpcIdx]}`);
 					const newConnection = new solanaWeb3.Connection(rpcs[rpcIdx], 'confirmed');
@@ -437,7 +437,7 @@
             }
             if (craftRecipe.account.category.toString() === upgradeCategory.publicKey.toString()) {
                 upgradeRecipes.push({'name': recipeName, 'publicKey': craftRecipe.publicKey, 'category': craftRecipe.account.category, 'domain': craftRecipe.account.domain, 'feeRecipient': craftRecipe.account.feeRecipient.key, 'duration': craftRecipe.account.duration.toNumber(), 'input': recipeInputOutput, 'output': []});
-            } else {
+            } else if (recipeName !== 'SDU') {
                 craftRecipes.push({'name': recipeName, 'publicKey': craftRecipe.publicKey, 'category': craftRecipe.account.category, 'domain': craftRecipe.account.domain, 'feeRecipient': craftRecipe.account.feeRecipient.key, 'duration': craftRecipe.account.duration.toNumber(), 'input': recipeInputOutput.slice(0, -1), 'output': recipeInputOutput.slice(-1)[0]});
             }
         }
@@ -2252,6 +2252,7 @@
                         ],
                         programPK
                     );
+                    if (!await getAccountInfo(userCraft.label, 'Crafting ingredient token', ingredientToken)) transactions.push(await createPDA(ingredientToken, craftingProcess, ingredient.mint, userCraft, false));
 
                     let tx = { instruction: await sageProgram.methods.burnCraftingConsumables({
                         ingredientIndex: ingredient.idx
@@ -2324,6 +2325,7 @@
                     ],
                     programPK
                 );
+                if (!await getAccountInfo(userCraft.label, 'Crafting ingredient token', outputFrom)) transactions.push(await createPDA(outputFrom, craftableItem.publicKey, craftRecipe.output.mint, userCraft, false));
 
                 let tx1 = { instruction: await sageProgram.methods.claimCraftingOutputs({
                     ingredientIndex: craftRecipe.output.idx
